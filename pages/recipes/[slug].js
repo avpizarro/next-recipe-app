@@ -3,7 +3,6 @@ import { useRouter} from 'next/router';
 import {
   sanityClient,
   urlFor,
-  userPreviewSubcription,
   PortableText,
   usePreviewSubscription,
 } from '../../lib/sanity';
@@ -76,7 +75,7 @@ export default function OneRecipe({ data, preview }) {
             ))}
           </ul>
           <PortableText
-            blocks={recipe?.instructions}
+            blocks={data?.recipe?.instructions}
             className="instructions"
           />
         </div>
