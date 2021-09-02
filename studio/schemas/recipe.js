@@ -18,6 +18,11 @@ export default {
             },
         },
         {
+            name: "url",
+            title: "Url",
+            type: "string",
+        },
+        {
             name: "chef",
             title: "Chef",
             type: "reference",
