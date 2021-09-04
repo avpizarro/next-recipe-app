@@ -12,6 +12,7 @@ const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0]{
     _id,
     name,
     slug,
+    url,
     mainImage,
     ingredient[]{
         key,
@@ -56,6 +57,7 @@ export default function OneRecipe({ data, preview }) {
   return (
     <article className="recipe">
       <h1>{data?.recipe?.name}</h1>
+      <h6 className="webpage-link"><a className="webpage-link" href={data?.recipe?.url}>{data?.recipe?.url}</a></h6>
 
       <button className="like-button" onClick={addLike}>
         {likes} 💛

@@ -13,7 +13,7 @@ body {
 }
 
 .header a {
-  color: rgb(75, 95, 75);
+  color: #444;
   display: inline-block;
   padding-top: 10px;
   text-decoration: none;
@@ -28,6 +28,14 @@ main {
 
 h1 {
   margin-bottom: 40px;
+}
+
+.webpage-link {
+  font-size: smaller;
+  color: #444;
+  text-decoration: none;
+  margin: 0px;
+  margin-bottom: 10px;
 }
 
 img {
@@ -62,7 +70,7 @@ img {
   font-size: 48px;
   font-weight: bolder;
   color: #000;
-  margin-bottom: 15px;
+  margin-bottom: 0px;
 }
 
 .content {
