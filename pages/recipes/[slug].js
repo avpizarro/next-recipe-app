@@ -103,5 +103,5 @@ export async function getStaticPaths() {
 export async function getStaticProps({ params }) {
   const { slug } = params;
   const recipe = await sanityClient.fetch(recipeQuery, { slug });
-  return { props: { data: { recipe }, preview: true } };
+  return { props: { data: { recipe }, preview: true, revalidate: 10 } };
 }
