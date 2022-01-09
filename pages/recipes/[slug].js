@@ -41,27 +41,27 @@ export default function OneRecipe({ data, preview }) {
     enabled: preview,
   });
 
-  const [likes, setLikes] = useState(data?.recipe?.likes);
+  // const [likes, setLikes] = useState(data?.recipe?.likes);
 
-  const addLike = async () => {
-    const res = await fetch('/api/handle-like', {
-      method: 'POST',
-      body: JSON.stringify({ _id: recipe._id }),
-    }).catch((error) => console.log(error));
+  // const addLike = async () => {
+  //   const res = await fetch('/api/handle-like', {
+  //     method: 'POST',
+  //     body: JSON.stringify({ _id: recipe._id }),
+  //   }).catch((error) => console.log(error));
 
-    const data = await res.json();
+  //   const data = await res.json();
 
-    setLikes(data.likes);
-  };
+  //   setLikes(data.likes);
+  // };
 
   return (
     <article className="recipe">
       <h1>{data?.recipe?.name}</h1>
-      <h6 className="webpage-link"><a className="webpage-link" href={data?.recipe?.url}>{data?.recipe?.url}</a></h6>
+      <h6 className="webpage-link"><a className="webpage-link" href={data?.recipe?.url}>Link here</a></h6>
 
-      <button className="like-button" onClick={addLike}>
-        {likes} 💛
-      </button>
+      {/* <button className="like-button" onClick={addLike}>
+        {likes}
+      </button> */}
 
       <main className="content">
         <img src={urlFor(data?.recipe?.mainImage).url()} alt={data?.recipe?.name} />
