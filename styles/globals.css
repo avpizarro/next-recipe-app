@@ -140,7 +140,7 @@ img {
   }
 }
 
-@media (width < 368px) {
+@media (width < 360px) {
   .recipes-list {
     grid-template-columns: 1fr;
   }
