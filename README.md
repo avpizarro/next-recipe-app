@@ -1,3 +1,7 @@
+# Alejandra's Kitchen
+
+An app to store my favorite web recipes. Built using Next.js , Sanity.io and Vercel.
+
 Find the app here: 
 
 - https://next-recipe-app-silk.vercel.app
