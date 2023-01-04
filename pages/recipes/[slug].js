@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+// import { IonButton } from '@ionic/react';
+
 import
-  {
-    sanityClient,
-    urlFor,
-    PortableText,
-    usePreview,
-  } from '../../lib/sanity';
+{
+  sanityClient,
+  urlFor,
+  PortableText,
+} from '../../lib/sanity';
 import React from 'react';
 
 const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0]{
@@ -15,20 +16,11 @@ const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0]{
     slug,
     url,
     mainImage,
-    ingredient[]{
-        key,
-        unit,
-        wholeNumber,
-        fraction,
-        ingredient->{
-            name
-        }
-    },
     instructions,
     likes
 }`;
 
-export default function OneRecipe({ data, preview })
+export default function OneRecipe({ data })
 {
 
   const router = useRouter()
@@ -38,26 +30,42 @@ export default function OneRecipe({ data, preview })
     return <div>Loading...</div>
 
   }
-  const { data: recipe } = usePreview(recipeQuery, {
-    params: { slug: data.recipe?.slug.current },
-    intialData: data,
-    enabled: preview,
-  });
 
   return (
-      <article className="recipe">
-        <h1>{data?.recipe?.name}</h1>
-        <h6 className="webpage-link"><a className="webpage-link" href={data?.recipe?.url}>Link here</a></h6>
-        <main className="content">
-          <img src={urlFor(data?.recipe?.mainImage).url()} alt={data?.recipe?.name} />
-          <div className="breakdown">
+
+    <article className="recipe">
+
+      <h1>{data?.recipe?.name}</h1>
+
+      <h6 className="webpage-link">
+
+        <a className="webpage-link" href={data?.recipe?.url}>Link here</a>
+
+      </h6>
+
+      <main className="content">
+
+        <img src={urlFor(data?.recipe?.mainImage).width(1000).url()} alt={data?.recipe?.name} />
+
+        <div className="breakdown">
+
+          <div className="ingredients">
+
             <PortableText
               value={data?.recipe?.instructions}
-              className="instructions"
             />
+
           </div>
-        </main>
-      </article>
+
+        </div>
+
+      </main>
+
+      {/* <IonDatetime displayFormat="MM/DD/YYYY" placeholder="Select Date"></IonDatetime> */}
+      {/* <IonButton fill="clear">Start</IonButton> */}
+
+    </article>
+
   );
 }
 

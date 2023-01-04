@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import '../styles/globals.css';
-import {PreviewSuspense} from 'next-sanity/preview'
+import {PreviewSuspense} from 'next-sanity/preview';
+
+// import '@ionic/react/css/core.css';
 
 function MyApp({ Component, pageProps })
 {
