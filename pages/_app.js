@@ -1,14 +1,16 @@
 import Link from 'next/link';
 import '../styles/globals.css';
-import {PreviewSuspense} from 'next-sanity/preview';
+import { PreviewProvider } from '../lib/sanity.js';
 
 // import '@ionic/react/css/core.css';
 
 function MyApp({ Component, pageProps })
 {
+  const { preview } = pageProps;
+  
   return (
     <>
-      <PreviewSuspense fallback="loading...">
+      <PreviewProvider token={preview?.token}>
         <nav className="header">
           <div>
             <Link href="/">
@@ -19,7 +21,7 @@ function MyApp({ Component, pageProps })
         <main>
           <Component {...pageProps} />
         </main>
-      </PreviewSuspense>
+      </PreviewProvider>
     </>
   );
 }

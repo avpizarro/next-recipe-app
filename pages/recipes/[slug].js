@@ -6,9 +6,10 @@ import
 {
   sanityClient,
   urlFor,
-  PortableText,
 } from '../../lib/sanity';
 import React from 'react';
+
+import { PortableText } from '@portabletext/react';
 
 const recipeQuery = `*[_type == "recipe" && slug.current == $slug][0]{
     _id,

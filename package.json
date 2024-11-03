@@ -9,16 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ionic/react": "^6.4.1",
-    "@portabletext/react": "^2.0.0",
-    "@sanity/image-url": "^1.0.1",
-    "next": "^13.0.2",
-    "next-sanity": "^3.1.8",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@ionic/react": "^8.3.4",
+    "@portabletext/react": "^3.1.0",
+    "@sanity/image-url": "^1.1.0",
+    "next": "^15.0.2",
+    "next-sanity": "^9.8.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "eslint": "8.30.0",
-    "eslint-config-next": "13.1.1"
+    "eslint": "9.14.0",
+    "eslint-config-next": "15.0.2"
   }
 }
