@@ -1,11 +1,13 @@
 import { sanityClient } from "../../lib/sanity";
-sanityClient.config({
+
+const writeClient = sanityClient.withConfig({
     token: process.env.SANITY_WRITE_TOKEN,
+    useCdn: false,
 });
 
 export default async function likeButtonHandler(req, res) {
     const { _id } = JSON.parse(req.body);
-    const data = await sanityClient
+    await writeClient
         .patch(_id)
         .setIfMissing({ likes: 0 })
         .inc({ likes: 1 })
