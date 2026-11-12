@@ -1,44 +1,73 @@
 # Alejandra's Kitchen
 
-An app to store my favorite web recipes. Built using Next.js , Sanity.io and Vercel.
+A collection of favorite web recipes, built with Next.js, React, and Sanity, and hosted on Vercel. Browse recipes without an account; Google sign-in is reserved for allowlisted admins.
 
-Find the app here: 
+[Visit Alejandra's Kitchen](https://next-recipe-app-silk.vercel.app)
 
-- https://next-recipe-app-silk.vercel.app
-- https://next-recipe-app-git-main-avpizarro.vercel.app
-- https://next-recipe-app-avcgajhj0-avpizarro.vercel.app
+## Screenshots
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+### Recipe collection
 
-## Getting Started
+![Recipe collection showing a grid of recipe photos and names](docs/images/recipe-list.png)
 
-First, run the development server:
+### Recipe details
 
-```bash
+![Fragrant roast chicken with mango salad, showing the recipe photo, ingredients, and instructions](docs/images/recipe.png)
+
+## Local development
+
+Use Node.js 24 LTS and npm:
+
+```sh
+npm ci
 npm run dev
-# or
-yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [localhost:3000](http://localhost:3000). Recipe content comes from Sanity, so loading recipes and building the app require network access.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+## Admin sign-in
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+Visit `/admin/sign-in` to sign in with an allowlisted Google account. The authentication foundation is implemented; recipe-management screens are planned in later issues.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+For local authentication, add the variables from [`.env.example`](.env.example) to `.env.local`, preserving any existing settings:
 
-## Learn More
+| Variable | Purpose |
+| --- | --- |
+| `BETTER_AUTH_URL` | `http://localhost:3000` locally; the main HTTPS website address in production |
+| `BETTER_AUTH_SECRET` | Random secret of at least 32 characters |
+| `GOOGLE_CLIENT_ID` | Google OAuth web application client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `ADMIN_EMAILS` | Comma-separated verified Google email addresses allowed to sign in |
 
-To learn more about Next.js, take a look at the following resources:
+Generate a secret with `openssl rand -base64 32`. Keep `.env.local` out of version control and restart the development server after changing it.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+See [Admin authentication](docs/authentication.md) for Google OAuth setup, session behavior, route-protection examples, and manual verification.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Production deployment
 
-## Deploy on Vercel
+In **Vercel → Project → Settings → Environment Variables**, add the variables above for the **Production** environment. Use a separate production secret and set:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```dotenv
+BETTER_AUTH_URL=https://next-recipe-app-silk.vercel.app
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+If you use a custom domain, substitute that address. Register the matching authorized redirect URI in your Google OAuth client:
+
+```text
+https://next-recipe-app-silk.vercel.app/api/auth/callback/google
+```
+
+Use Node.js 24 in Vercel's project settings and redeploy after changing environment variables. Local `.env.local` values are not automatically deployed.
+
+## Checks
+
+```sh
+npm test
+npm run build
+```
+
+The tests cover admin authentication, session handling, access guards, safe redirects, and public recipe rendering. Completing Google consent and sign-out with a real account remains a manual check.
+
+## Project planning
+
+See the [PRD](issues/prd.md) and [implementation plan](issues/agent-execution-plan.md) for active and deferred features.
