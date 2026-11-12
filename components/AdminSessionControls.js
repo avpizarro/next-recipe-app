@@ -17,7 +17,7 @@ export default function AdminSessionControls({ email }) {
     }
   }
   return <div className="admin-session">
-    <span>Signed in as {email}</span>
+    <span className="text-secondary">Signed in as {email}</span>
     <button type="button" disabled={pending} onClick={signOut}>{pending ? 'Signing out…' : 'Sign out'}</button>
     {error && <p role="alert">{error}</p>}
   </div>;
