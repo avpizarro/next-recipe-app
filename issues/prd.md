@@ -1,5 +1,15 @@
 # Add Recipes, Meal Planning, Shopping Lists & Nutrition Guidance
 
+## Current scope decision
+
+Recipe browsing is public: visitors can view published recipes without logging in. Google login is exclusively for allowlisted admins managing recipes. Use Better Auth, replacing the original NextAuth.js decision.
+
+Admin recipe import, image selection, review, and publishing remain in scope (issues 001–009). Public recipe submissions and ordinary user accounts are deferred. In the active submission flow, “submitter” means the signed-in admin.
+
+Personal meal plans, shopping lists, nutrition profiles, and personalized portion guidance are deferred (issues 010–014). Public per-serving nutrition facts remain in scope as the reduced scope of issue 015; they must not require a session. Woolworths automation remains deferred.
+
+Deferred specifications below are retained for future planning, not as requirements for the current implementation. Revisit identity and account requirements before reactivating them.
+
 ## Problem Statement
 
 Today, "Alejandra's Kitchen" only grows through the site owner manually entering recipes in Sanity Studio. There's no way for other people to contribute recipes, no way to turn a set of recipes into a shopping list, no way to get that shopping list into an actual grocery cart, and no way to know how much of a recipe to eat to match personal nutrition/fitness goals.
@@ -8,22 +18,22 @@ Concretely, the site owner wants to be able to share a recipe URL and have it ad
 
 ## Solution
 
-A five-phase feature set built directly into the existing Next.js app (no separate backend/service, deployable on Vercel as today), backed by extensions to the existing Sanity schema:
+The original five-phase roadmap, subject to the scope decision above, is built directly into the existing Next.js app (no separate backend/service, deployable on Vercel as today), backed by extensions to the existing Sanity schema:
 
-1. **Add a recipe from a URL** — any signed-in user pastes a URL; the app scrapes/parses it (structured data first, LLM fallback second), lets the submitter pick a main image from candidates found on the page, and submits it as a pending recipe.
+1. **Add a recipe from a URL** — an allowlisted admin pastes a URL; the app scrapes/parses it (structured data first, LLM fallback second), lets the submitter pick a main image from candidates found on the page, and submits it as a pending recipe.
 2. **In-app review** — the site owner reviews pending recipes on a new page in the app itself (not Sanity Studio), confirming ingredient matches, ingredient density (for unit conversion), and ingredient nutrition matches before publishing.
-3. **Persistent meal planning + shopping list** — signed-in users build a saved list of recipes over time and generate a single, fully unit-converted, aggregated shopping list from it.
+3. **Persistent meal planning + shopping list (deferred)** — signed-in users build a saved list of recipes over time and generate a single, fully unit-converted, aggregated shopping list from it.
 4. **Woolworths cart automation** *(deferred, lowest priority)* — an admin-only, tightly guardrailed, manually-triggered agent that adds shopping-list items to a Woolworths cart (never checkout, never stores credentials).
-5. **Nutrition-matched portion guidance** — for any recipe, show how a serving compares to the signed-in user's manually-entered daily nutrition targets, and suggest a portion size to match.
+5. **Nutrition-matched portion guidance (personalization deferred)** — for any recipe, show how a serving compares to the signed-in user's manually-entered daily nutrition targets, and suggest a portion size to match.
 
 ## User Stories
 
 ### Recipe submission
-1. As a signed-in user, I want to paste a recipe URL and have the app extract the recipe's name, ingredients, instructions, and servings, so that I don't have to manually transcribe it.
-2. As a signed-in user submitting a recipe, I want to see multiple candidate images pulled from the source page and pick the one I like, so that the recipe has a good main image without me needing my own photo.
-3. As a signed-in user, I want my submission to go into a review queue rather than publishing instantly, so that low-quality or broken scrapes don't pollute the live site.
+1. As an allowlisted admin, I want to paste a recipe URL and have the app extract the recipe's name, ingredients, instructions, and servings, so that I don't have to manually transcribe it.
+2. As an allowlisted admin submitting a recipe, I want to see multiple candidate images pulled from the source page and pick the one I like, so that the recipe has a good main image without me needing my own photo.
+3. As an allowlisted admin, I want my submission to go into a review queue rather than publishing instantly, so that low-quality or broken scrapes don't pollute the live site.
 4. As a submitter, I want to see the status of recipes I've submitted (pending/published/rejected), so that I know whether my contribution went live.
-5. As the site owner, I want unauthenticated users to be blocked from submitting recipes, so that submissions are always attributable to an account.
+5. As the site owner, I want anyone without an allowlisted admin session to be blocked from submitting recipes, so that recipe management is restricted to admins.
 
 ### Review/moderation
 6. As the site owner, I want to review pending recipes from within the app itself, so that I never have to open Sanity Studio for day-to-day moderation.
@@ -36,7 +46,7 @@ A five-phase feature set built directly into the existing Next.js app (no separa
 13. As a reviewer, I want access to the review page restricted to an allowlisted set of emails, so that arbitrary users can't approve their own or others' submissions.
 14. As the site owner, I want the recipe's main image (chosen by the submitter) displayed on the review page, so that I can sanity-check submissions before approving, even though I can't change it there.
 
-### Meal planning & shopping list
+### Meal planning & shopping list (deferred)
 15. As a signed-in user, I want to add recipes to a personal, persistent meal plan, so that I can build it up over multiple visits instead of selecting everything in one sitting.
 16. As a signed-in user, I want to remove an individual recipe from my meal plan, so that I can adjust my plan as it changes.
 17. As a signed-in user, I want to delete my entire meal plan, so that I can start fresh.
@@ -55,9 +65,9 @@ A five-phase feature set built directly into the existing Next.js app (no separa
 28. As the site owner, I want each cart-fill run to be manually triggered, never automatic, so that I stay in control of when it runs.
 29. As the site owner, I want a summary at the end of a run of what was added vs. skipped, so that I know what still needs to be added manually.
 
-### Nutrition-matched portions
+### Nutrition-matched portions (personalization deferred; public facts retained)
 30. As a signed-in user, I want to enter my own daily calorie and macro (protein/carbs/fat) targets on a profile page, so that portion guidance reflects goals I already know, without the app guessing on my behalf.
-31. As a signed-in user viewing a recipe, I want to see the nutrition facts for one full serving, so that I understand what I'm looking at before any portion adjustment.
+31. As a visitor viewing a recipe without logging in, I want to see the nutrition facts for one full serving, so that I understand what I'm looking at before any portion adjustment.
 32. As a signed-in user viewing a recipe, I want to see how one serving compares to my daily targets (e.g. "45% of your daily calories"), so that I can decide how much to eat.
 33. As a signed-in user viewing a recipe, I want a suggested portion size (e.g. "~0.75 servings") that would better fit my remaining targets for a meal, so that I get actionable guidance rather than just raw numbers.
 34. As a user without saved nutrition targets, I want the recipe page to still show plain per-serving nutrition facts (just without the personalized comparison), so that the feature degrades gracefully instead of breaking.
@@ -65,14 +75,17 @@ A five-phase feature set built directly into the existing Next.js app (no separa
 ## Implementation Decisions
 
 ### Auth & access control
-- **NextAuth.js with Google OAuth** for sign-in. No roles/permissions schema — admin access (review page, Woolworths automation) is determined by checking the signed-in user's email against an allowlist read from an environment variable.
-- All recipe-submission, meal-plan, and profile routes require a signed-in session.
+- **Better Auth with Google OAuth** for admin-only sign-in, using encrypted stateless cookie sessions without a separate auth database.
+- Only verified Google emails in the server-only `ADMIN_EMAILS` allowlist may establish a session. Missing or empty configuration denies access.
+- Every recipe-management page and API checks the validated session and current allowlist before protected reads or writes. Unauthenticated pages redirect to `/admin/sign-in`; APIs return `401` without a session and `403` for a session no longer allowlisted.
+- Homepage and published recipe detail pages remain public. Pending/rejected recipes must not be exposed through public listings or direct URLs.
+- Ordinary user accounts, public submissions, meal-plan routes, and personal-profile routes are deferred.
 
 ### Schema changes (Sanity)
 - `recipe`: add `status` (`"pending" | "published" | "rejected"`), `servings` (number), `submittedBy` (reference or stored email/id of the submitting user).
 - `ingredient`: add `densityGPerMl` (number, optional — only required for ingredients used with volume units), `caloriesPer100g`, `proteinPer100g`, `carbsPer100g`, `fatPer100g` (numbers, sourced from USDA FoodData Central).
-- New `mealPlan` document type: reference to the owning user + array of recipe references. One per user (or reference by user id/email — implementer's choice), persists indefinitely until explicitly deleted or recipes removed.
-- New user profile storage for daily nutrition targets (`dailyCalories`, `dailyProtein`, `dailyCarbs`, `dailyFat`), keyed to the NextAuth session (as a Sanity document keyed by user email/id, consistent with how `mealPlan` is keyed — no separate database needed).
+- **Deferred:** New `mealPlan` document type: reference to the owning user + array of recipe references. One per user (or reference by user id/email — implementer's choice), persists indefinitely until explicitly deleted or recipes removed.
+- **Deferred:** New user profile storage for daily nutrition targets (`dailyCalories`, `dailyProtein`, `dailyCarbs`, `dailyFat`), keyed to a stable authenticated user identity (as a Sanity document keyed by user email/id, consistent with how `mealPlan` is keyed — no separate database needed).
 
 ### Recipe extraction pipeline
 - Given a URL: attempt to parse `schema.org/Recipe` JSON-LD from the page first. If missing or incomplete, fall back to an LLM (Anthropic API) call to extract name, ingredients, instructions, and servings from the page content.
@@ -85,16 +98,16 @@ A five-phase feature set built directly into the existing Next.js app (no separa
 - Naming convention enforced at ingredient-creation time (in the review UI): singular, title-case, no brand names, no prep-state words in the name (prep state, if relevant, belongs in the existing `notes` field).
 - Ingredient reference resolution (matched or newly created) is finalized as part of approving the recipe in review — a recipe cannot be published with unresolved ingredient lines.
 
-### Unit conversion & aggregation
+### Unit conversion & aggregation (deferred)
 - Two-part conversion: (1) generic dimensional conversion (cup/tbsp/tsp/oz/etc. → mL or g) via a standard unit-conversion library; (2) density-based mass↔volume bridging using each ingredient's `densityGPerMl`, following the same arithmetic pattern as `@dailykit/food-units-converter` (verified during design: that library provides the mass↔volume arithmetic but ships no per-ingredient density data itself, and doesn't cover cup/tbsp/tsp — so it's either used as a reference implementation or reimplemented directly, combined with a separate dimensional-conversion library for the cup/tbsp/tsp/oz step).
 - Canonical units: grams for solids, millilitres for liquids.
 - If an ingredient lacks `densityGPerMl` and the shopping list needs a volume↔mass conversion for it, that ingredient's line is flagged as unconverted/unaggregated in the output rather than silently guessed.
 
-### Meal plan & shopping list
+### Meal plan & shopping list (deferred)
 - `mealPlan` CRUD (add recipe, remove recipe, delete plan) exposed via API routes, scoped to the signed-in user.
 - Shopping list generation reads all recipes in the current meal plan, resolves every ingredient line through the unit conversion module, and aggregates by ingredient into a single combined-quantity list.
 
-### Woolworths cart automation
+### Woolworths cart automation (deferred)
 - Implemented as an in-app, server-side route, but access-gated by the same admin allowlist used for review — not exposed to general users.
 - No Woolworths credentials are ever stored; the run operates within a session context provided at trigger time.
 - Guardrails enforced in the agent driver itself, not just documented: a hard maximum step count per run; per-ingredient skip-on-failure (no retries); action scope limited to "add to cart" (checkout/payment actions are never issued); the run only starts on an explicit manual trigger.
@@ -102,6 +115,8 @@ A five-phase feature set built directly into the existing Next.js app (no separa
 - Infra note: this phase needs a persistent browser automation environment and will not run inside a standard Vercel serverless function (execution time limits, no persistent browser process) — expect a separate small always-on worker alongside the Vercel deployment. This is scoped as its own follow-up when Phase 4 is actually built, not part of the initial rollout.
 
 ### Nutrition & portion guidance
+
+Public per-serving facts and admin ingredient nutrition lookup remain active. Saved targets, personalized comparisons, and portion suggestions below are deferred.
 - Ingredient macros sourced from USDA FoodData Central at ingredient-creation time in review; reviewer selects/confirms the correct database entry rather than typing values.
 - Per-recipe nutrition (calories/macros per serving) computed from `servings` + summed ingredient quantities × their per-100g macros.
 - Portion guidance is per-recipe and static: it compares one serving's nutrition to the signed-in user's manually-entered daily targets and outputs a percentage-of-daily-target and a suggested portion fraction. It does not track meals eaten, remaining daily budget, or anything across a day/week — that is explicitly future scope, not part of this PRD.
@@ -117,9 +132,9 @@ The following modules are designed as small, deep interfaces — each hides real
 
 1. **Recipe Extractor** — `extractRecipe(url) → { name, servings, ingredients[], instructions, imageCandidates[], sourceFormat }`. Encapsulates JSON-LD parsing, LLM fallback, and image-candidate scanning.
 2. **Ingredient Matcher** — `matchIngredient(parsedName, existingIngredients) → { suggestedMatch, confidence, normalizedName }`. Encapsulates fuzzy matching and naming-convention normalization.
-3. **Unit Converter** — `convertToCanonical(quantity, unit, densityGPerMl?) → { value, unit }` and `aggregateIngredientLines(lines[]) → aggregatedLines[]`. Encapsulates dimensional conversion and density-based mass↔volume bridging. Pure functions, no I/O.
+3. **Unit Converter (deferred)** — `convertToCanonical(quantity, unit, densityGPerMl?) → { value, unit }` and `aggregateIngredientLines(lines[]) → aggregatedLines[]`. Encapsulates dimensional conversion and density-based mass↔volume bridging. Pure functions, no I/O.
 4. **Nutrition Lookup** — `lookupNutrition(ingredientName) → candidates[]`. Encapsulates the USDA FoodData Central API integration.
-5. **Portion Guidance** — `computePortionGuidance(recipe, userTargets) → { perServingMacros, percentOfDailyTargets, suggestedPortionFraction }`. Pure function, no I/O.
+5. **Portion Guidance (deferred)** — `computePortionGuidance(recipe, userTargets) → { perServingMacros, percentOfDailyTargets, suggestedPortionFraction }`. Pure function, no I/O.
 6. **Woolworths Cart Agent** — `addIngredientsToCart(items, { maxSteps }) → { added[], skipped[] }`. Encapsulates the guardrailed browser-automation loop.
 
 ## Testing Decisions
@@ -153,4 +168,4 @@ No existing test suite/prior art currently exists in this codebase to model thes
 
 - The existing `ingredient` dataset is currently tiny and clean (3 documents: Mango, Pineapple, Tequila), so there is no backfill/migration burden for the new `densityGPerMl` or macro fields — they simply get populated as new ingredients are created going forward. Existing ingredients can be backfilled opportunistically, not as a blocking task.
 - `@dailykit/food-units-converter` (npm, last published 2021) was evaluated as a possible dependency for the Unit Converter module. It provides usable mass↔volume arithmetic given a density, but ships no ingredient density data and doesn't cover cup/tbsp/tsp units at all — so it's not a drop-in solution by itself. Implementer should decide between using it as a reference/dependency for just the mass↔volume step (paired with a separate dimensional-conversion library for cup/tbsp/tsp/oz) or reimplementing the small amount of relevant logic directly.
-- Phases are intentionally ordered by priority: Phase 1/1b (add + review) and Phase 2/3 (meal plan + shopping list) are the core value and should be built first; Phase 5 (nutrition) was described as the last, smallest phase; Phase 4 (Woolworths) was explicitly called out as "further down the track" and lowest priority, with real infra implications (a non-Vercel worker) that make it a natural candidate for a separate follow-up PRD when it's actually prioritized.
+- Historical priority order (superseded by the current scope decision above): Phase 1/1b (add + review) and Phase 2/3 (meal plan + shopping list) are the core value and should be built first; Phase 5 (nutrition) was described as the last, smallest phase; Phase 4 (Woolworths) was explicitly called out as "further down the track" and lowest priority, with real infra implications (a non-Vercel worker) that make it a natural candidate for a separate follow-up PRD when it's actually prioritized.

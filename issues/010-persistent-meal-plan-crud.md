@@ -2,6 +2,10 @@
 
 `issues/prd.md`
 
+## Status
+
+Deferred. Personal meal plans require ordinary user accounts, which are outside the current admin-only login scope. The specification below is retained for future planning and is not part of the active implementation.
+
 ## What to build
 
 A new `mealPlan` Sanity document type (reference to the owning user + array of recipe references), with API routes and a minimal UI so a signed-in user can add a published recipe to their meal plan, remove an individual recipe from it, view their current plan, and delete the whole plan. Persists across sessions/devices.

@@ -2,6 +2,10 @@
 
 `issues/prd.md`
 
+## Status
+
+Deferred. Personal nutrition profiles require ordinary user accounts, which are deferred. The specification below is retained for future planning and is not part of the active implementation.
+
 ## What to build
 
 A new user-profile document (daily calorie/macro targets: `dailyCalories`, `dailyProtein`, `dailyCarbs`, `dailyFat`), keyed to the signed-in user's session, with a simple profile page UI to enter and edit them.

@@ -2,6 +2,10 @@
 
 `issues/prd.md`
 
+## Status
+
+Deferred. Personalized portion guidance is deferred with saved user nutrition targets. The specification below is retained for future planning and is not part of the active implementation.
+
 ## What to build
 
 The Portion Guidance module: a pure function with no I/O, no UI dependency. Given a recipe's per-serving macros and a user's daily targets, computes how one serving compares to those targets and suggests a portion fraction.

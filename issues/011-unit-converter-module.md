@@ -2,6 +2,10 @@
 
 `issues/prd.md`
 
+## Status
+
+Deferred. Deferred with meal planning and shopping-list aggregation; it is not required for the admin authentication foundation. The specification below is retained for future planning and is not part of the active implementation.
+
 ## What to build
 
 The Unit Converter module: pure functions with no I/O, no UI dependency. Implements generic dimensional conversion (cup/tbsp/tsp/oz/g/kg/mg/mL/L) plus density-based mass↔volume bridging using a supplied `densityGPerMl`. Canonical output units are grams for solids and millilitres for liquids.

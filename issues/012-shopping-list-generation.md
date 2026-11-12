@@ -2,6 +2,10 @@
 
 `issues/prd.md`
 
+## Status
+
+Deferred. Deferred with personal meal plans and ordinary user accounts. The specification below is retained for future planning and is not part of the active implementation.
+
 ## What to build
 
 A "generate shopping list" feature that reads all recipes currently in the signed-in user's meal plan (`issues/010-persistent-meal-plan-crud.md`), resolves every ingredient line through the Unit Converter module (`issues/011-unit-converter-module.md`), and displays a single aggregated list per ingredient. Lines that couldn't be converted/aggregated (e.g. missing density) are visibly flagged rather than silently wrong.

@@ -1,36 +1,36 @@
 # Agent Execution Plan
 
-Derived from `issues/prd.md` and the 15 open GitHub issues (`gh issue list`), based on each issue's "Blocked by" section. Phase 4 (Woolworths cart automation) has no issues yet — the PRD explicitly defers it, so it's out of scope for this plan.
+This local plan reflects the current scope in `issues/prd.md`: public recipe browsing and admin-only recipe management using Better Auth. It does not imply that remote GitHub issues have been updated.
 
-## Tracks (5 agents)
+## Active work
 
-Each track is one agent working its issues **sequentially**, because the issues within a track repeatedly touch the same files (same module, same page, same route). Splitting a track across multiple agents would create merge conflicts.
-
-| Track | Issues (in order) | Why grouped together |
+| Track | Issues | Scope |
 |---|---|---|
-| **Auth** | 001 | Foundational — gates almost everything else |
-| **Submission** | 002 → 003 → 004 → 005 | All extend the same Recipe Extractor module + submission route/UI |
-| **Review** | 006 → 007 → 008 → 009 | All extend the same `/review` page and its API |
-| **Meal Plan** | 011 → 010 → 012 | Unit Converter (011) is standalone; CRUD (010) needs Auth+Review; shopping list (012) needs both |
-| **Nutrition** | 014 → 013 → 015 | Portion Guidance (014) is standalone; profile (013) needs Auth; 015 needs Review's 009 too |
+| Auth | 001 | Admin-only Google login, current allowlist checks, public browsing |
+| Submission | 002 → 003 → 004 → 005 | Admin recipe import, extraction, image selection, ingredient matching |
+| Review | 006 → 007 → 008 → 009 | Admin review, ingredient confirmation, density and nutrition lookup |
+| Public nutrition | 015 | Per-serving facts visible without an account; personalization deferred |
 
-## Layers (6 total)
+## Dependency order
 
-A new layer starts wherever a track must wait on another track finishing.
+1. 001 establishes admin authentication.
+2. 002 adds admin recipe import.
+3. 003–005 extend the same extraction/submission flow sequentially. 006 depends on 001 and 002.
+4. 007 depends on 005 and 006.
+5. 008 and 009 depend on 007 and share the review flow.
+6. 015 depends on 009, with its scope reduced to public nutrition facts. Resolve any required quantity conversion explicitly; do not silently depend on deferred 011.
 
-| Layer | Issues (parallel within layer) | Blocked by |
-|---|---|---|
-| **0** | 001 Auth, 011 Unit Converter, 014 Portion Guidance | Nothing — 3 agents can start immediately |
-| **1** | 002 Submission (base slice), 013 Nutrition Profile | 001 |
-| **2** | 003 LLM fallback, 004 Image picker, 005 Ingredient matcher, 006 Review page | 002 (006 also needs 001) |
-| **3** | 007 Review ingredient confirmation, 010 Meal Plan CRUD | 005 + 006, and 001 + 006 respectively |
-| **4** | 008 Density prompt, 009 Nutrition lookup, 012 Shopping list | 007, and 010 + 011 respectively |
-| **5** | 015 Recipe page nutrition/portion UI | 009 + 013 + 014 — final integration point |
+Issues sharing extraction or review files should be implemented sequentially to avoid conflicting changes.
 
-**Total: 5 agents, 6 layers.** Max parallelism is 3 agents at once (layer 0).
+## Deferred work
 
-## Notes / risks
+- Public recipe contributions and ordinary user accounts.
+- 010: personal meal-plan CRUD.
+- 011: full unit-conversion and aggregation module, deferred with shopping lists. A required subset for public nutrition can be scoped separately.
+- 012: shopping-list generation.
+- 013: personal nutrition profiles.
+- 014: personalized portion guidance.
+- Personalized comparisons and portion suggestions from 015; its public facts remain active.
+- Woolworths automation remains deferred as before.
 
-- **Critical path:** Submission (002→005) and Review (006→009) are the long poles — 4 sequential issues each, and Review's ingredient-confirmation slice (007) can't start until Submission's ingredient matcher (005) lands.
-- **File-collision risk:** 003, 004, and 005 all extend the Recipe Extractor module. Don't split these into separate parallel agents even though their "Blocked by" only lists 002 — they'll collide on the same file. Same logic applies to 008/009 both extending the review ingredient-confirmation UI.
-- **Not covered:** Phase 4 (Woolworths automation) — no issues filed yet; PRD flags it as a future follow-up needing separate non-Vercel infra.
+Retain deferred issue specifications for future planning. Do not start them merely because their original dependency lists are satisfied; revisit account/identity requirements when reactivating them.
