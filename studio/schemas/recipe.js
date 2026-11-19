@@ -1,6 +1,11 @@
 const ingredientEntry = {
     type: "object",
     fields: [
+        { name: "parsedName", title: "Parsed ingredient name", type: "string", readOnly: true },
+        { name: "normalizedName", title: "Proposed ingredient name", type: "string", readOnly: true },
+        { name: "matchConfidence", title: "Match similarity", type: "number", readOnly: true },
+        { name: "suggestedIngredient", title: "Suggested ingredient (requires review)", type: "reference", to: [{ type: "ingredient" }], readOnly: true },
+        { name: "resolutionStatus", title: "Resolution status", type: "string", options: { list: ["unresolved", "resolved"] }, readOnly: true },
         { name: "rawText", title: "Original ingredient line", type: "string", readOnly: true },
         {
             name: "ingredient",
@@ -33,7 +38,10 @@ const ingredientEntry = {
     preview: {
         select: {
             title: "ingredient.name",
-            name: "ingredient.name",
+            proposedName: "normalizedName",
+            suggestedName: "suggestedIngredient.name",
+            parsedName: "parsedName",
+            rawText: "rawText",
             media: "ingredient.image",
             wholeNumber: "wholeNumber",
             fraction: "fraction",
@@ -41,14 +49,19 @@ const ingredientEntry = {
         },
         prepare({
             title,
-            subtitle,
+            proposedName,
+            suggestedName,
+            parsedName,
+            rawText,
             media,
             wholeNumber = "(No whole number set)",
             fraction = "(No fraction set)",
             unit = "(No unit set)",
         }) {
             return {
-                title,
+                // Pending imports have no final reference until review confirms it.
+                title: [title, proposedName, suggestedName, parsedName, rawText]
+                    .find((value) => typeof value === "string" && value.trim()) || "Ingredient needs a name",
                 subtitle: `${wholeNumber} ${fraction} ${unit}`,
                 media
             }

@@ -96,7 +96,7 @@ it('persists a usable pending LLM recipe through the existing import flow', asyn
   page(fixture);
   download.mockResolvedValueOnce({ body: Buffer.from('image'), contentType: 'image/jpeg' });
   const transaction = { create: vi.fn().mockReturnThis(), commit: vi.fn().mockResolvedValue({}) };
-  getWriteClient.mockReturnValue({ assets: { upload: vi.fn().mockResolvedValue({ _id: 'image-1' }) }, transaction: () => transaction });
+  getWriteClient.mockReturnValue({ fetch: vi.fn().mockResolvedValue([{ _id: 'oil', name: 'Olive Oil' }]), assets: { upload: vi.fn().mockResolvedValue({ _id: 'image-1' }) }, transaction: () => transaction });
   expect(await importRecipe(url, { id: 'admin' })).toMatchObject({ status: 'pending', name: 'Carrot soup' });
   const saved = transaction.create.mock.calls.map(([doc]) => doc).find((doc) => doc._type === 'recipe');
   expect(saved).toMatchObject({ sourceFormat: 'llm', status: 'pending', servings: 2 });
@@ -104,7 +104,7 @@ it('persists a usable pending LLM recipe through the existing import flow', asyn
   expect(saved.instructions.map((block) => block.children[0].text)).toEqual(recipe().instructions);
 });
 
-it('uses the LLM to distinguish a list heading and saves only real ingredient records', async () => {
+it('uses the LLM to distinguish a list heading and saves only real ingredient proposals', async () => {
   page(readFileSync(new URL('./fixtures/recipe-groups.html', import.meta.url), 'utf8'));
   parse.mockResolvedValue({ stop_reason: 'end_turn', parsed_output: {
     name: 'Curry', servings: 2, instructions: ['Cook the curry base. Add the remaining ingredients.'],
@@ -115,13 +115,19 @@ it('uses the LLM to distinguish a list heading and saves only real ingredient re
   } });
   download.mockResolvedValueOnce({ body: Buffer.from('image'), contentType: 'image/jpeg' });
   const transaction = { create: vi.fn().mockReturnThis(), commit: vi.fn().mockResolvedValue({}) };
-  getWriteClient.mockReturnValue({ assets: { upload: vi.fn().mockResolvedValue({ _id: 'image-1' }) }, transaction: () => transaction });
+  getWriteClient.mockReturnValue({ fetch: vi.fn().mockResolvedValue([{ _id: 'oil', name: 'Olive Oil' }]), assets: { upload: vi.fn().mockResolvedValue({ _id: 'image-1' }) }, transaction: () => transaction });
   await importRecipe(url, { id: 'admin' });
   const docs = transaction.create.mock.calls.map(([doc]) => doc);
-  expect(docs.filter((doc) => doc._type === 'ingredient')).toHaveLength(5);
+  expect(docs.filter((doc) => doc._type === 'ingredient')).toHaveLength(0);
   expect(docs.some((doc) => doc._type === 'ingredient' && /Curry Base/.test(doc.name))).toBe(false);
   const saved = docs.find((doc) => doc._type === 'recipe');
   expect(saved.sourceFormat).toBe('llm');
   expect(saved.ingredientGroups.map((group) => group.title)).toEqual([null, 'Curry Base']);
   expect(saved).not.toHaveProperty('ingredient');
+  const lines = saved.ingredientGroups.flatMap((group) => group.ingredients);
+  expect(lines).toHaveLength(5);
+  expect(lines.every((line) => line.resolutionStatus === 'unresolved' && !line.ingredient)).toBe(true);
+  expect(lines[0].suggestedIngredient._ref).toBe('oil');
+  expect(lines[2].suggestedIngredient._ref).toBe('oil');
+  expect(lines[2]).toMatchObject({ fraction: '1/4', unit: 'cup(s)', normalizedName: 'Olive Oil' });
 });

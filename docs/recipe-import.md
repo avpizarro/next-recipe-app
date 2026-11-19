@@ -7,18 +7,39 @@ unambiguous positive serving count, ingredients, instructions, and a usable imag
 Pages requiring JavaScript execution are not supported.
 
 Configure `SANITY_WRITE_TOKEN` in `.env.local` and the deployment environment with
-permission to create documents and upload image assets. Never use a `NEXT_PUBLIC_`
+permission to read ingredients, create recipes, and upload image assets. Never use a `NEXT_PUBLIC_`
 variable for this token. Existing Better Auth configuration is also required.
 
 The first image candidate is uploaded automatically. Failure to download/upload
-it fails the import rather than silently selecting a different image. New ingredient
-documents and the pending recipe are committed in a single transaction. An upload
+it fails the import rather than silently selecting a different image. The pending
+recipe is committed with unresolved ingredient proposals; no ingredient documents
+are created during submission. An upload
 followed by a failed transaction can leave an unused image asset. Import retries
 create new recipes; URL deduplication is not implemented in this slice.
 
 Ingredient parsing handles simple quantities and the existing schema's units and
 fractions. Original lines are retained in `ingredientGroups[].ingredients[].rawText (or legacy ingredient[].rawText)` for later review.
-No ingredient matching or unit conversion is performed.
+Each line stores `parsedName`, `normalizedName`, `matchConfidence`, and
+`resolutionStatus: "unresolved"`. A match additionally stores a
+`suggestedIngredient` reference; absence means a proposed new ingredient. The
+final `ingredient` reference remains unset until review (issue 007), including for
+exact matches. No unit conversion is performed.
+
+The matcher reads existing ingredient IDs and names once per import, excluding
+drafts and release versions. Lookup failures abort before image upload. Matching
+first compares normalized names, then permits minor spelling differences with a
+minimum similarity of 0.8 and a lead of at least 0.1 over the next candidate.
+Different word counts, short-word spelling changes, and ambiguous candidates
+produce no suggestion. Confidence is a similarity score, not a probability;
+no suggestion has confidence zero.
+
+Normalization strips recognized preparation terms and a bounded list of brands,
+singularizes common ingredient nouns, and title-cases the proposed name. Unknown
+brands and unfamiliar language require human review; these rules are not a
+guarantee of valid naming. Original text is retained so preparation details are
+not lost. Empty normalized names also need reviewer correction. Ingredient
+creation, naming validation, and approval guards belong to issue 007. Existing
+recipes and ingredient documents are not migrated by this change.
 
 ## LLM fallback
 
