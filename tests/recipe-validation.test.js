@@ -10,6 +10,7 @@ const valid = () => ({ name: 'Soup', servings: 2, ingredients: [{ name: 'salt', 
 
 it.each([
   { name: 'x'.repeat(301) }, { name: { html: 'Soup' } },
+  { sourceFormat: 'unknown' }, { sourceFormat: null },
   { servings: Infinity }, { servings: '2' }, { servings: 10001 },
   { instructions: ['x'.repeat(10001)] }, { instructions: Array(201).fill('Stir.') }, { instructions: [{ text: 'Stir.' }] },
   { ingredients: Array(201).fill({ name: 'salt', rawText: 'salt' }) },
@@ -49,4 +50,8 @@ it('does not decode already extracted plain text again', () => {
   const recipe = valid();
   recipe.instructions = ['Use <b> as a literal label & wait < 5 minutes.'];
   expect(validateExtractedRecipe(recipe).instructions).toEqual(recipe.instructions);
+});
+
+it('preserves the LLM source format', () => {
+  expect(validateExtractedRecipe({ ...valid(), sourceFormat: 'llm' }).sourceFormat).toBe('llm');
 });

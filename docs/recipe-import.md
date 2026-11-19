@@ -1,9 +1,10 @@
 # Recipe URL imports
 
 Allowlisted admins can sign in at `/admin/sign-in` and continue to
-`/admin/recipes/new`. Imports require complete Recipe JSON-LD with a name,
+`/admin/recipes/new`. Imports prefer complete Recipe JSON-LD and fall back to Anthropic extraction from
+page text when structured data is missing or incomplete. Both paths require a name,
 unambiguous positive serving count, ingredients, instructions, and a usable image.
-Pages requiring JavaScript execution or LLM extraction are not supported yet.
+Pages requiring JavaScript execution are not supported.
 
 Configure `SANITY_WRITE_TOKEN` in `.env.local` and the deployment environment with
 permission to create documents and upload image assets. Never use a `NEXT_PUBLIC_`
@@ -17,7 +18,27 @@ create new recipes; URL deduplication is not implemented in this slice.
 
 Ingredient parsing handles simple quantities and the existing schema's units and
 fractions. Original lines are retained in `ingredient[].rawText` for later review.
-No ingredient matching, unit conversion, or LLM fallback is performed.
+No ingredient matching or unit conversion is performed.
+
+## LLM fallback
+
+Set server-only `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` in `.env.local` and the
+deployment environment. Select a model supporting JSON-schema structured outputs.
+Structured imports do not require either setting. Fallback sends extracted page
+text to Anthropic, never credentials or the full HTML. It uses one request with a
+20-second timeout, no automatic retries, and an 8,000-token output cap.
+
+Page preparation prefers `main`, then `article`, then the body; removes scripts,
+styles and navigation; and preserves line boundaries. Empty text or text over
+60,000 characters fails rather than being truncated. Images come from the page,
+including incomplete JSON-LD, and still use the existing safe download pipeline.
+Missing images, download failures and structured content-limit violations do not
+trigger model calls. Missing/ambiguous servings, refusals, incomplete responses,
+and invalid extracted fields fail the import rather than guessing missing data.
+
+Imported recipes retain `sourceFormat: "structured"` or `"llm"` and remain pending
+for review. Schema validation cannot guarantee that model output is faithful to
+the source, so reviewers should check LLM-extracted content against the original.
 
 ## Extracted content safety
 
