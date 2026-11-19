@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "package.json",
-  "author": "Alejandra Valdes Pizarro <avpizarro@live.com>",
+  "author": "Alejandra Valdes Pizarro <avaldespizarro@outlook.com>",
   "license": "UNLICENSED",
   "scripts": {
     "start": "sanity start",
