@@ -19,6 +19,25 @@ Ingredient parsing handles simple quantities and the existing schema's units and
 fractions. Original lines are retained in `ingredient[].rawText` for later review.
 No ingredient matching, unit conversion, or LLM fallback is performed.
 
+## Extracted content safety
+
+HTML is downloaded only into memory and is never saved to Sanity. Only the explicit
+recipe fields and operational metadata are persisted. Cooking time is not part of
+the current import schema. Recipe text is extracted with Cheerio `.text()` after
+removing script/style and embedded-content nodes. Instructions become plain-text
+Portable Text spans with no HTML or link marks; React renders these as text. If a
+future feature preserves HTML formatting, add a dedicated HTML sanitizer before
+allowing any HTML rendering. Cheerio is a parser, not an HTML sanitizer.
+
+Validation runs again before any image upload or document write, enforcing types,
+allowed units/fractions, positive finite servings (at most 10,000), names of at most
+300 characters, at most 200 ingredients of 1,000 characters each, and at most 200
+instructions of 10,000 characters each. Quantities must be finite and between zero
+and 1,000,000. Only allowlisted fields survive validation. Excess image candidates
+are capped at 100. Image URLs must use HTTP(S), contain no credentials or custom
+ports, and be at most 4,096 characters. Downloads additionally validate public IPs,
+pin DNS results, recheck redirects, and enforce MIME types, timeouts, and size limits.
+
 ## Rollout
 
 Public app queries now require `status == "published"`; pending, rejected, and

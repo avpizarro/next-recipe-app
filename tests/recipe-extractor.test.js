@@ -30,4 +30,21 @@ describe('structured recipe extraction', () => {
   it('preserves unsupported quantities without guessing', () => {
     expect(parseIngredient('1/8 tsp salt')).toEqual({ name: '1/8 tsp salt', rawText: '1/8 tsp salt' });
   });
+  it('drops unsafe image candidates and retains plain text from marked-up fields', () => {
+    const modified = fixture.replace('Mango &amp; Pineapple', '<img src=x onerror=alert(1)>Mango &amp; Pineapple')
+      .replace('"/second.jpg"', '"javascript:alert(1)", "data:image/png;base64,abc", "https://user:pass@example.com/image.jpg"');
+    const recipe = parseRecipeHtml(modified, url);
+    expect(recipe.name).toBe('Mango & Pineapple');
+    expect(recipe.imageCandidates).toEqual(['https://example.com/hero.jpg', 'https://example.com/other.jpg']);
+    expect(recipe).not.toHaveProperty('html');
+  });
+  it('rejects malformed ingredient entries instead of silently dropping them', () => {
+    expect(() => parseRecipeHtml(fixture.replace('"2 pineapple"', '{"name":"pineapple"}'), url)).toThrow('ingredient list');
+  });
+  it('rejects excessive instruction nesting', () => {
+    let steps = 'Stir.';
+    for (let depth = 0; depth < 22; depth++) steps = { itemListElement: steps };
+    const recipe = { '@type': 'Recipe', name: 'Soup', recipeYield: 2, recipeIngredient: ['salt'], recipeInstructions: steps, image: '/soup.jpg' };
+    expect(() => parseRecipeHtml(`<script type="application/ld+json">${JSON.stringify(recipe)}</script>`, url)).toThrow('nested too deeply');
+  });
 });
