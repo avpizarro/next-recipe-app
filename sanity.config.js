@@ -1,15 +1,15 @@
 // sanity.config.js
 import {defineConfig} from 'sanity'
-import {deskTool} from 'sanity/desk'
+import { structureTool } from 'sanity/structure'
 import {schemaTypes} from './studio/schemas/schema'
 
 export default defineConfig({
-  name: 'Create new project',
+  name: 'default',
   title: 'Alejandra Kitchen',
   projectId: 'bn64ftjo',
   dataset: 'production',
   plugins: [
-    deskTool(),
+    structureTool(),
   ],
   schema: {
     types: schemaTypes,
