@@ -2,7 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { sanityClient, urlFor } from "../lib/sanity";
 
-const recipesQuery = `*[_type == "recipe"]{
+const recipesQuery = `*[_type == "recipe" && status == "published"]{
   _id,
   name,
   slug,
