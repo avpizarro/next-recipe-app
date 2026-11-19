@@ -40,7 +40,7 @@ export default function AdminSignIn() {
     {sessionError && <p role="alert">Could not check your session. Please reload or try signing in again.</p>}
     {isPending ? <p className="text-secondary" role="status">Checking your session…</p> : data ? <>
       <AdminSessionControls email={data.user.email} />
-      {!oauthError && <p><Link href={returnTo}>Continue</Link></p>}
+      {!oauthError && <p><Link href={returnTo === '/' ? '/admin/recipes/new' : returnTo}>Continue</Link></p>}
     </> : <button type="button" onClick={signIn} disabled={pending || !router.isReady}>
       {pending ? 'Opening Google…' : 'Sign in with Google'}
     </button>}

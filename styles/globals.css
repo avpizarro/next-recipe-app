@@ -62,6 +62,9 @@ h1, h2, h3, h4, h5, h6 {
 .admin-card button:disabled { color: var(--text-disabled); cursor: wait; }
 .admin-card button:focus-visible, .admin-card a:focus-visible { outline: 3px solid #2268a3; outline-offset: 3px; }
 .admin-card [role="alert"] { color: #9c2424; }
+.admin-card form { display: grid; gap: 12px; margin-top: 20px; }
+.admin-card input { box-sizing: border-box; width: 100%; min-width: 0; padding: 10px; border: 1px solid #666; border-radius: 5px; }
+.admin-card input:focus-visible { outline: 3px solid #2268a3; outline-offset: 3px; }
 .admin-session { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 
 main {

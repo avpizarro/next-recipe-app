@@ -3,6 +3,10 @@ export default {
     title: "Recipe",
     type: "document",
     fields: [
+        { name: "status", title: "Status", type: "string", options: { list: ["pending", "published", "rejected"] }, validation: Rule => Rule.required() },
+        { name: "servings", title: "Servings", type: "number", validation: Rule => Rule.positive() },
+        { name: "submittedBy", title: "Submitted by (admin ID)", type: "string", readOnly: true },
+        { name: "sourceFormat", title: "Source format", type: "string", options: { list: ["structured", "llm"] }, readOnly: true },
         {
             name: "name",
             title: "Recipe Name",
@@ -46,6 +50,7 @@ export default {
                 {
                     type: "object",
                     fields: [
+                        { name: "rawText", title: "Original ingredient line", type: "string", readOnly: true },
                         {
                             name: "ingredient",
                             title: "Ingredient",
@@ -115,6 +120,7 @@ export default {
         },
     ],
     initialValue: {
+        status: "pending",
         likes: 0,
     },
 }
