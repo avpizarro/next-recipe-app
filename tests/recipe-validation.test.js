@@ -55,3 +55,18 @@ it('does not decode already extracted plain text again', () => {
 it('preserves the LLM source format', () => {
   expect(validateExtractedRecipe({ ...valid(), sourceFormat: 'llm' }).sourceFormat).toBe('llm');
 });
+
+it('derives the ingredient list from validated groups without retaining extra fields', () => {
+  const input = valid();
+  const result = validateExtractedRecipe({ ...input, ingredientGroups: [{ title: 'Curry Base', ingredients: input.ingredients, html: 'discard' }] });
+  expect(result.ingredientGroups).toEqual([{ title: 'Curry Base', ingredients: input.ingredients }]);
+  expect(result.ingredients).toEqual(input.ingredients);
+});
+it.each([
+  [], [{ title: 123, ingredients: valid().ingredients }], [{ title: 'x'.repeat(301), ingredients: valid().ingredients }],
+  [{ title: 'Empty', ingredients: [] }], [{ title: null, ingredients: Array(201).fill(valid().ingredients[0]) }],
+  Array(31).fill({ title: null, ingredients: valid().ingredients }),
+  [{ title: null, ingredients: Array(101).fill(valid().ingredients[0]) }, { title: 'Other', ingredients: Array(100).fill(valid().ingredients[0]) }],
+].map((ingredientGroups) => ({ ingredientGroups })))('rejects invalid groups and enforces total ingredient limits: %j', ({ ingredientGroups }) => {
+  expect(() => validateExtractedRecipe({ ...valid(), ingredientGroups })).toThrow();
+});

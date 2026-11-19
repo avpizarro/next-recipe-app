@@ -17,6 +17,10 @@ const recipeQuery = `*[_type == "recipe" && status == "published" && slug.curren
     slug,
     url,
     mainImage,
+    ingredientGroups[]{
+      _key, title,
+      ingredients[]{ _key, rawText, wholeNumber, fraction, unit, "name": ingredient->name }
+    },
     ingredient[]{
       _key,
       rawText,
@@ -49,9 +53,14 @@ export default function OneRecipe({ data })
 
   }
 
-  const ingredients = (data?.recipe?.ingredient || []).filter(Boolean)
-    .map((item) => ({ key: item._key, label: ingredientLabel(item) }))
-    .filter((item) => item.label);
+  // New recipes store groups; old flat records remain an untitled group.
+  const groups = (data?.recipe?.ingredientGroups?.length ? data.recipe.ingredientGroups
+    : [{ title: null, ingredients: data?.recipe?.ingredient || [] }])
+    .filter(Boolean).map((group) => ({ ...group,
+      ingredients: (group.ingredients || []).filter(Boolean)
+        .map((item) => ({ key: item._key, label: ingredientLabel(item) })).filter((item) => item.label),
+    })).filter((group) => group.ingredients.length);
+
 
   return (
 
@@ -73,14 +82,17 @@ export default function OneRecipe({ data })
 
           <div className="ingredients">
 
-            {ingredients.length > 0 && <section aria-labelledby="ingredients-heading">
+            {groups.length > 0 && <section aria-labelledby="ingredients-heading">
               <h2 id="ingredients-heading">Ingredients</h2>
-              <ul>{ingredients.map((item, index) => <li key={item.key || index}>{item.label}</li>)}</ul>
+              {groups.map((group, index) => <div key={group._key || index}>
+                {group.title && <h3>{group.title}</h3>}
+                <ul>{group.ingredients.map((item, itemIndex) => <li key={item.key || itemIndex}>{item.label}</li>)}</ul>
+              </div>)}
             </section>}
 
             {/* Older recipes already contain headings and ingredient lists in
                 Portable Text. Keep that content intact until it is migrated. */}
-            {ingredients.length > 0 && <h2>Instructions</h2>}
+            {groups.length > 0 && <h2>Instructions</h2>}
 
             <PortableText
               value={data?.recipe?.instructions}

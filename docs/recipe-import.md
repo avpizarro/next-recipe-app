@@ -17,7 +17,7 @@ followed by a failed transaction can leave an unused image asset. Import retries
 create new recipes; URL deduplication is not implemented in this slice.
 
 Ingredient parsing handles simple quantities and the existing schema's units and
-fractions. Original lines are retained in `ingredient[].rawText` for later review.
+fractions. Original lines are retained in `ingredientGroups[].ingredients[].rawText (or legacy ingredient[].rawText)` for later review.
 No ingredient matching or unit conversion is performed.
 
 ## LLM fallback
@@ -85,3 +85,23 @@ access separately before production use. Public app projections omit submitter I
 
 Run `npm test` and `npm run build` to validate. A live smoke test requires an
 allowlisted Google session, a configured write token, and a JSON-LD recipe URL.
+
+## Ingredient groups
+
+New grouped imports store ordered `ingredientGroups`, each with an optional title
+and an array of ingredient entries. Headings never create ingredient documents.
+The extraction boundary also derives a flat `ingredients` view for consumers that
+need only real ingredients. Limits apply across all groups (200 ingredients total,
+30 groups, and 300 characters per title).
+
+Explicit HTML headings are preserved when all structured ingredient lines match
+the page in order. Ambiguous colon-ended list labels trigger LLM extraction even
+when JSON-LD otherwise looks complete. The model distinguishes group titles from
+quantity-free ingredients such as “Salt to taste”. Missing model configuration
+fails these ambiguous imports rather than silently importing headings as food.
+
+Deploy the updated Studio schema to edit group headings and their ingredient
+lists. Recipe pages render group titles above their lists; older flat ingredient
+arrays and legacy Portable Text remain supported. Existing records are not
+rewritten automatically: reimport affected recipes and review the replacement, or
+correct their ingredient groups in Studio before publishing.

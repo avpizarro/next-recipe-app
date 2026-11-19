@@ -13,7 +13,7 @@ vi.mock('../lib/sanity-write', () => ({ getWriteClient: vi.fn() }));
 const fixture = readFileSync(new URL('./fixtures/recipe-no-jsonld.html', import.meta.url), 'utf8');
 const structured = readFileSync(new URL('./fixtures/recipe.html', import.meta.url), 'utf8');
 const url = 'https://example.com/recipe';
-const recipe = () => ({ name: 'Carrot soup', servings: 2, ingredients: ['2 cups chopped carrots', '1/2 tsp salt'],
+const recipe = () => ({ name: 'Carrot soup', servings: 2, ingredientGroups: [{ title: null, ingredients: ['2 cups chopped carrots', '1/2 tsp salt'] }],
   instructions: ['Simmer carrots until tender.', 'Blend and season with salt.'] });
 function page(html) { download.mockResolvedValueOnce({ body: Buffer.from(html), url }); }
 beforeEach(() => {
@@ -85,7 +85,7 @@ it('maps provider errors without exposing diagnostics', async () => {
 it.each([{ servings: null }, { servings: '2–4' }, { ingredients: [12] }, { ingredients: ['x'.repeat(1001)] },
   { instructions: [] }, { name: null }])('rejects invalid output before any asset or document writes: %j', async (override) => {
   page(fixture);
-  parse.mockResolvedValue({ stop_reason: 'end_turn', parsed_output: { ...recipe(), ...override } });
+  parse.mockResolvedValue({ stop_reason: 'end_turn', parsed_output: { ...recipe(), ...override, ...(override.ingredients ? { ingredientGroups: [{ title: null, ingredients: override.ingredients }] } : {}) } });
   const client = { assets: { upload: vi.fn() }, transaction: vi.fn() };
   getWriteClient.mockReturnValue(client);
   await expect(importRecipe(url, { id: 'admin' })).rejects.toThrow();
@@ -100,6 +100,28 @@ it('persists a usable pending LLM recipe through the existing import flow', asyn
   expect(await importRecipe(url, { id: 'admin' })).toMatchObject({ status: 'pending', name: 'Carrot soup' });
   const saved = transaction.create.mock.calls.map(([doc]) => doc).find((doc) => doc._type === 'recipe');
   expect(saved).toMatchObject({ sourceFormat: 'llm', status: 'pending', servings: 2 });
-  expect(saved.ingredient).toHaveLength(2);
+  expect(saved.ingredientGroups[0].ingredients).toHaveLength(2);
   expect(saved.instructions.map((block) => block.children[0].text)).toEqual(recipe().instructions);
+});
+
+it('uses the LLM to distinguish a list heading and saves only real ingredient records', async () => {
+  page(readFileSync(new URL('./fixtures/recipe-groups.html', import.meta.url), 'utf8'));
+  parse.mockResolvedValue({ stop_reason: 'end_turn', parsed_output: {
+    name: 'Curry', servings: 2, instructions: ['Cook the curry base. Add the remaining ingredients.'],
+    ingredientGroups: [
+      { title: null, ingredients: ['2 tablespoons olive oil', 'Fresh basil, to garnish'] },
+      { title: 'Curry Base', ingredients: ['1/4 cup olive oil', '1 teaspoon cumin', 'Salt to taste'] },
+    ],
+  } });
+  download.mockResolvedValueOnce({ body: Buffer.from('image'), contentType: 'image/jpeg' });
+  const transaction = { create: vi.fn().mockReturnThis(), commit: vi.fn().mockResolvedValue({}) };
+  getWriteClient.mockReturnValue({ assets: { upload: vi.fn().mockResolvedValue({ _id: 'image-1' }) }, transaction: () => transaction });
+  await importRecipe(url, { id: 'admin' });
+  const docs = transaction.create.mock.calls.map(([doc]) => doc);
+  expect(docs.filter((doc) => doc._type === 'ingredient')).toHaveLength(5);
+  expect(docs.some((doc) => doc._type === 'ingredient' && /Curry Base/.test(doc.name))).toBe(false);
+  const saved = docs.find((doc) => doc._type === 'recipe');
+  expect(saved.sourceFormat).toBe('llm');
+  expect(saved.ingredientGroups.map((group) => group.title)).toEqual([null, 'Curry Base']);
+  expect(saved).not.toHaveProperty('ingredient');
 });

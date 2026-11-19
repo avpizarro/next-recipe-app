@@ -67,3 +67,16 @@ it('preserves legacy rich text without adding empty ingredient sections', () => 
   expect(html).toContain('<h2>Ingredients</h2>');
   expect(html).not.toContain('ingredients-heading');
 });
+
+it('renders group titles as headings and keeps quantity-free ingredients in lists', () => {
+  const recipe = { name: 'Curry', mainImage: {}, instructions: [], ingredientGroups: [
+    { title: null, ingredients: [{ rawText: 'Fresh basil, to garnish' }] },
+    { title: 'Curry Base', ingredients: [{ rawText: '1 teaspoon cumin' }, { rawText: 'Salt to taste' }] },
+  ], ingredient: [{ rawText: 'stale legacy data' }] };
+  const html = renderToStaticMarkup(createElement(Recipe, { data: { recipe } }));
+  expect(html).toContain('<h3>Curry Base</h3>');
+  expect(html).not.toContain('<li>Curry Base');
+  expect(html).toContain('<li>Fresh basil, to garnish</li>');
+  expect(html).toContain('<li>Salt to taste</li>');
+  expect(html).not.toContain('stale legacy data');
+});

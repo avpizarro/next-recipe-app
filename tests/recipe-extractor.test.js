@@ -48,3 +48,24 @@ describe('structured recipe extraction', () => {
     expect(() => parseRecipeHtml(`<script type="application/ld+json">${JSON.stringify(recipe)}</script>`, url)).toThrow('nested too deeply');
   });
 });
+
+const groupedFixture = readFileSync(new URL('./fixtures/recipe-groups.html', import.meta.url), 'utf8');
+it('preserves explicit HTML section headings without creating heading ingredients', () => {
+  const html = groupedFixture.replace('<li>Curry Base:</li>', '</ul><h3>Curry Base:</h3><ul>');
+  const result = parseRecipeHtml(html, url);
+  expect(result.sourceFormat).toBe('structured');
+  expect(result.ingredientGroups.map((group) => group.title)).toEqual([null, 'Curry Base']);
+  expect(result.ingredientGroups.map((group) => group.ingredients.length)).toEqual([2, 3]);
+  expect(result.ingredients.map((item) => item.rawText)).toContain('Fresh basil, to garnish');
+  expect(result.ingredients.map((item) => item.rawText)).toContain('Salt to taste');
+  expect(result.ingredients.map((item) => item.rawText)).not.toContain('Curry Base:');
+});
+it('recovers headings omitted from flat JSON-LD, including multiple groups', () => {
+  const html = groupedFixture.replace('"Curry Base:",', '')
+    .replace('<li>Curry Base:</li>', '</ul><h3>Curry Base:</h3><ul>')
+    .replace('<li>Salt to taste</li>', '</ul><h3>Seasoning</h3><ul><li>Salt to taste</li>');
+  expect(parseRecipeHtml(html, url).ingredientGroups.map((group) => group.title)).toEqual([null, 'Curry Base', 'Seasoning']);
+});
+it('does not silently treat ambiguous list labels as ingredients', () => {
+  expect(() => parseRecipeHtml(groupedFixture, url)).toThrow('No complete Recipe');
+});
